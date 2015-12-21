@@ -12,5 +12,8 @@ scalacOptions ++= Seq(
   "-Ywarn-unused-import"
 )
 
-libraryDependencies +=
-  "com.typesafe.akka" % "akka-actor_2.11" % "2.3.4"
+resolvers += "Sonatype Public" at "https://oss.sonatype.org/content/groups/public/"
+
+libraryDependencies += "com.typesafe.akka" % "akka-actor_2.11" % "2.3.4"
+
+libraryDependencies += "org.scodec" %% "scodec-bits" % "1.0.12"

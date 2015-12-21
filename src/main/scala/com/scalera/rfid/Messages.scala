@@ -1,16 +1,17 @@
 package com.scalera.rfid
 
-import akka.actor.ActorRef
+import scodec.bits._
 
 object Messages {
 
   case object Start
   case object Hello
-  case class IDS(content: Array[Byte])
-  case class A(content: Array[Byte])
-  case class B(content: Array[Byte])
-  case class C(content: Array[Byte])
+  case object GetResult
+  case class IDS(content: BitVector)
+  case class A(content: BitVector)
+  case class B(content: BitVector)
+  case class C(content: BitVector)
   case class ABC(a: A, b: B, c: C)
-  case class D(content: Array[Byte])
+  case class D(content: BitVector)
 
 }
