@@ -1,4 +1,4 @@
-package com.scalera.rfid
+package com.scalera.rfid.sasi
 
 import akka.actor.{ Actor, ActorRef, Props }
 import scodec.bits._

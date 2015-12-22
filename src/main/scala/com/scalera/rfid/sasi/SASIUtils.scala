@@ -1,4 +1,4 @@
-package com.scalera.rfid
+package com.scalera.rfid.sasi
 
 import scala.util.Random
 import scodec.bits._

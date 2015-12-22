@@ -1,4 +1,4 @@
-package com.scalera.rfid
+package com.scalera.rfid.yehetal
 
 import akka.actor.{ Actor, ActorRef, Props }
 import akka.pattern.ask
@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 
 import scodec.bits._
 
-import SASIUtils._
+import YehEtAlUtils._
 import Messages._
 
 class ManInTheMiddleActor(tag: ActorRef) extends Actor {
@@ -20,8 +20,10 @@ class ManInTheMiddleActor(tag: ActorRef) extends Actor {
 
   var ids = BitVector(new Array[Byte](size / 8))
   var vulnerabilityDetected = false
-  var lastIds = BitVector(new Array[Byte](size / 8))
   var idMap: Map[String, Int] = Map.empty[String, Int]
+
+  var c = BitVector(new Array[Byte](size / 8))
+  var d = BitVector(new Array[Byte](size / 8))
 
   def receive = {
 
@@ -30,24 +32,25 @@ class ManInTheMiddleActor(tag: ActorRef) extends Actor {
       tag ! Hello
 
     case idsMessage @ IDS(idsContent) =>
-      ids = idsContent
       if(vulnerabilityDetected) {
-        val idEstimated = estimateId(idsContent, lastIds)
+        val idEstimated = estimateId(idsContent, ids, d)
         vulnerabilityDetected = false
         idMap = idMap + (idEstimated.toBin -> (idMap.get(idEstimated.toBin).getOrElse(0) + 1))
       }
+      ids = idsContent
       reader.get ! idsMessage
 
-    case abc @ ABC(A(a), B(b), C(c)) =>
-      if(isVulnerable(c, a, ids, b)) {
+    case abc @ ABC(_, _, C(cContent), _) =>
+      c = cContent
+      tag ! abc
+
+    case dMessage @ D(dContent) =>
+      d = dContent
+      if(isVulnerable(c, d)) {
         // println("Vulnerability Detected!")
         vulnerabilityDetected = true
       }
-      tag ! abc
-
-    case d: D =>
-      lastIds = ids
-      reader.get ! d
+      reader.get ! dMessage
 
     case GetResult =>
       sender ! idMap
