@@ -12,8 +12,8 @@ class TagActor(_ids: BitVector, _k1: BitVector, _k2: BitVector, _id: BitVector) 
   var ids = _ids
   var k1 = _k1
   var k2 = _k2
-  var n1 = BitVector(new Array[Byte](size / 8))
-  var n2 = BitVector(new Array[Byte](size / 8)) 
+  var n1 = BitVector(Array.empty[Byte])
+  var n2 = BitVector(Array.empty[Byte]) 
   var k1Hat = createK1Hat(k1, n2)
   var k2Hat = createK2Hat(k2, n1)
 
@@ -22,22 +22,23 @@ class TagActor(_ids: BitVector, _k1: BitVector, _k2: BitVector, _id: BitVector) 
       sender ! IDS(ids)
 
     case ABC(A(aContent), B(bContent), C(cContent)) =>
-      n1 = getn1(aContent, ids, k1)
-      n2 = getn2(bContent, ids, k2)
-      k1Hat = createK1Hat(k1, n2)
-      k2Hat = createK2Hat(k2, n1)
-      //Check
-      val check = createC(k1, k2, k1Hat, k2Hat) == cContent
-      if(!check) {
-        println("\n\nC: " + cContent.toBin)
-        println("C estimated: " + createC(k1, k2, k1Hat, k2Hat).toBin)
-        println("Error checking C")
-      }
-      val dContent = createD(k2Hat, id, k1, k2, k1Hat)
-      sender ! D(dContent)
+      sender ! checkResponse(aContent, bContent, cContent)
       ids = createNewIDS(ids, id, n2, k1Hat)
       k1 = k1Hat
       k2 = k2Hat
+  }
+
+  def checkResponse(a: BitVector, b: BitVector, c: BitVector) = {
+
+    n1 = getn1(a, ids, k1)
+    n2 = getn2(b, ids, k2)
+    k1Hat = createK1Hat(k1, n2)
+    k2Hat = createK2Hat(k2, n1)
+
+    if(createC(k1, k2, k1Hat, k2Hat) != c)
+      println("Error checking C")
+    
+    D(createD(k2Hat, id, k1, k2, k1Hat))
   }
 }
 

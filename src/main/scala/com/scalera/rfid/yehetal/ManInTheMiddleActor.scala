@@ -18,12 +18,12 @@ class ManInTheMiddleActor(tag: ActorRef) extends Actor {
 
   var reader: Option[ActorRef] = None
 
-  var ids = BitVector(new Array[Byte](size / 8))
+  var ids = BitVector(Array.empty[Byte])
+  var c = BitVector(Array.empty[Byte])
+  var d = BitVector(Array.empty[Byte])
+  
   var vulnerabilityDetected = false
   var idMap: Map[String, Int] = Map.empty[String, Int]
-
-  var c = BitVector(new Array[Byte](size / 8))
-  var d = BitVector(new Array[Byte](size / 8))
 
   def receive = {
 
@@ -32,11 +32,17 @@ class ManInTheMiddleActor(tag: ActorRef) extends Actor {
       tag ! Hello
 
     case idsMessage @ IDS(idsContent) =>
+      
       if(vulnerabilityDetected) {
         val idEstimated = estimateId(idsContent, ids, d)
         vulnerabilityDetected = false
-        idMap = idMap + (idEstimated.toBin -> (idMap.get(idEstimated.toBin).getOrElse(0) + 1))
+        idMap = idMap + 
+          (
+            idEstimated.takeRight(5).toBin ->
+            (idMap.get(idEstimated.takeRight(5).toBin).getOrElse(0) + 1)
+          )
       }
+      
       ids = idsContent
       reader.get ! idsMessage
 
@@ -45,11 +51,12 @@ class ManInTheMiddleActor(tag: ActorRef) extends Actor {
       tag ! abc
 
     case dMessage @ D(dContent) =>
+      
       d = dContent
-      if(isVulnerable(c, d)) {
-        // println("Vulnerability Detected!")
+
+      if(isVulnerable(c, d))
         vulnerabilityDetected = true
-      }
+
       reader.get ! dMessage
 
     case GetResult =>

@@ -51,8 +51,9 @@ object SASIMain extends App {
   
   response.onComplete{ 
     case Success(map) =>
-      val (maxValue, times) = map.toList.sortBy(_._2).last
-      println(s"Max probability value is $maxValue. Found $times times")
+      val (maxValue, _) = map.toList.sortBy(_._2).last
+      println(s"Estimated value for the last five bits: $maxValue")
+      println(s"Actual value: ${id.takeRight(5).toBin}")
       system.shutdown
     case Failure(_: Throwable) =>
       system.shutdown

@@ -35,7 +35,7 @@ object YehEtAlMain extends App {
 
   implicit val timeout = Timeout(10 seconds)
 
-  val n = 100000
+  val n = 20000
 
   val results =
     (1 to n).foldLeft(List.empty[String]) {
@@ -51,12 +51,9 @@ object YehEtAlMain extends App {
   
   response.onComplete{ 
     case Success(map) if map.nonEmpty =>
-      val (maxValue, times) = map.toList.sortBy(_._2).last
-      println(s"Max probability value is $maxValue. Found $times times")
-      val (maxValue2, times2) = map.toList.sortBy(_._2).init.last
-      println(s"Max probability value is $maxValue2. Found $times2 times")
-      val (maxValue3, times3) = map.toList.sortBy(_._2).init.init.last
-      println(s"Max probability value is $maxValue3. Found $times3 times")
+      val (maxValue, _) = map.toList.sortBy(_._2).last
+      println(s"Estimated value for the last five bits: $maxValue")
+      println(s"Actual value: ${id.takeRight(5).toBin}")
       system.shutdown
     case _ =>
       system.shutdown

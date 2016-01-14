@@ -18,9 +18,10 @@ class ManInTheMiddleActor(tag: ActorRef) extends Actor {
 
   var reader: Option[ActorRef] = None
 
-  var ids = BitVector(new Array[Byte](size / 8))
+  var ids = BitVector(Array.empty[Byte])
+  var lastIds = BitVector(Array.empty[Byte])
+  
   var vulnerabilityDetected = false
-  var lastIds = BitVector(new Array[Byte](size / 8))
   var idMap: Map[String, Int] = Map.empty[String, Int]
 
   def receive = {
@@ -34,13 +35,16 @@ class ManInTheMiddleActor(tag: ActorRef) extends Actor {
       if(vulnerabilityDetected) {
         val idEstimated = estimateId(idsContent, lastIds)
         vulnerabilityDetected = false
-        idMap = idMap + (idEstimated.toBin -> (idMap.get(idEstimated.toBin).getOrElse(0) + 1))
+        idMap =
+          idMap + (
+            idEstimated.takeRight(5).toBin -> 
+            (idMap.get(idEstimated.takeRight(5).toBin).getOrElse(0) + 1)
+          )
       }
       reader.get ! idsMessage
 
     case abc @ ABC(A(a), B(b), C(c)) =>
       if(isVulnerable(c, a, ids, b)) {
-        // println("Vulnerability Detected!")
         vulnerabilityDetected = true
       }
       tag ! abc

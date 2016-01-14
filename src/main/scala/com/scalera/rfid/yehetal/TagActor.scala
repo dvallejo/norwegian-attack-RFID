@@ -11,9 +11,9 @@ class TagActor(_ids: BitVector, _k: BitVector, _id: BitVector) extends Actor {
   var id = _id
   var ids = _ids
   var k = _k
-  var n1 = BitVector(new Array[Byte](size / 8))
-  var n2 = BitVector(new Array[Byte](size / 8)) 
-  var kHat = BitVector(new Array[Byte](size / 8)) 
+  var n1 = BitVector(Array.empty[Byte])
+  var n2 = BitVector(Array.empty[Byte]) 
+  var kHat = BitVector(Array.empty[Byte]) 
   var k1Hat = createK1Hat(k, n1, n2)
 
   def receive = {
@@ -21,28 +21,31 @@ class TagActor(_ids: BitVector, _k: BitVector, _id: BitVector) extends Actor {
       sender ! IDS(ids)
 
     case ABC(A(aContent), B(bContent), C(cContent), flag) =>
-      if(flag == 1)
-        k = id
+      sender ! checkResponse(aContent, bContent, cContent, flag)
+  }
 
-      n1 = getn1(aContent, ids, k)
-      n2 = getn2(bContent, ids, k)
-      kHat = createKHat(k, n1, n2)
-      
-      // //Check
-      val check = createC(kHat, n1, n2) == cContent
-      if(!check)
-        println("Error checking C")
+  def checkResponse(a: BitVector, b: BitVector, c: BitVector, flag: Int) = {
+    
+    if(flag == 1)
+      k = id
 
-      val k1Hat = createK1Hat(k, n1, n2)
-      val dContent = createD(k1Hat, n1, n2)
+    n1 = getn1(a, ids, k)
+    n2 = getn2(b, ids, k)
+    kHat = createKHat(k, n1, n2)
+    
+    if(createC(kHat, n1, n2) != c)
+      println("Error checking C")
 
-      val newIds = createNewIDS(ids, id, n1, n2, k1Hat)
+    val k1Hat = createK1Hat(k, n1, n2)
+    val dContent = createD(k1Hat, n1, n2)
 
-      ids = newIds.copy
-      
-      k = kHat
-      sender ! D(dContent)
+    val newIds = createNewIDS(ids, id, n1, n2, k1Hat)
 
+    ids = newIds.copy
+    
+    k = kHat
+
+    D(dContent)
   }
 }
 
