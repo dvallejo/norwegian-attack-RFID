@@ -50,7 +50,7 @@ object SASIMain extends App {
   val response = (manInTheMiddleActor ? Messages.GetResult).mapTo[Map[String, Int]]
   
   response.onComplete{ 
-    case Success(map) =>
+    case Success(map) if map.nonEmpty =>
       val (maxValue, _) = map.toList.sortBy(_._2).last
       println(s"Estimated value for the last five bits: $maxValue")
       println(s"Actual value: ${id.takeRight(5).toBin}")
